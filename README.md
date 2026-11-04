@@ -1,9 +1,8 @@
-[README.md](https://github.com/user-attachments/files/34294578/README_PL.md)
 # Conser-vision: Klasyfikacja obrazów dzikich zwierząt
 
-Projekt z zakresu widzenia komputerowego, wykorzystujący PyTorch [DrivenData Conser-vision Practice Area](https://www.drivendata.org/competitions/87/competition-image-classification-wildlife-conservation/).
+Projekt z zakresu widzenia komputerowego, wykorzystujący PyTorch, realizowany na podstawie konkursu [DrivenData – Conser-vision Practice Area](https://www.drivendata.org/competitions/87/competition-image-classification-wildlife-conservation/).
 
-Celem jest klasyfikowanie zdjęć z fotopułapek do ośmiu rozłącznych klas:
+Celem projektu jest klasyfikowanie zdjęć z fotopułapek do ośmiu rozłącznych klas:
 
 `antelope_duiker`, `bird`, `blank`, `civet_genet`, `hog`, `leopard`, `monkey_prosimian`, `rodent`.
 
@@ -11,23 +10,26 @@ Celem jest klasyfikowanie zdjęć z fotopułapek do ośmiu rozłącznych klas:
 
 ## Zastosowane podejście
 
-- **Framework:** PyTorch + torchvision
-- **Model bazowy:** ResNet18 z wagami wstępnie wytrenowanymi na ImageNet (transfer learning)
-- **Walidacja:** wydzielenie grup lokalizacji fotopułapek (`site`) w celu ograniczenia przecieku informacji związanej z lokalizacją
-- **Metryka:** wieloklasowy log loss (logarytmiczna funkcja straty)
-- **Wynik:** prawdopodobieństwa klas w dokładnym formacie wymaganym przez DrivenData
+- **Framework:** PyTorch i torchvision.
+- **Model bazowy:** ResNet18 z wagami wstępnie wytrenowanymi na ImageNet (transfer learning).
+- **Walidacja:** podział grupowany według lokalizacji fotopułapek (`site`).
+- **Metryka:** wieloklasowy Log Loss.
+- **Wynik:** prawdopodobieństwa przynależności obrazu do poszczególnych klas, zapisane w formacie wymaganym przez DrivenData.
 
-Podział walidacyjny jest grupowany według lokalizacji (`site`), ponieważ zbiór testowy konkursu zawiera lokalizacje, których nie ma w zbiorze treningowym. Losowy podział pojedynczych zdjęć może prowadzić do zbyt optymistycznej oceny modelu.
+Podział walidacyjny jest grupowany według lokalizacji (`site`), ponieważ zbiór testowy konkursu zawiera lokalizacje, których nie ma w zbiorze treningowym. Losowy podział pojedynczych zdjęć mógłby prowadzić do zbyt optymistycznej oceny modelu.
 
 ## Struktura repozytorium
 
 ```text
 conservision-wildlife-classifier/
 ├── data/
-│   └── raw/                 # dane konkursowe (nie są dodawane do repozytorium)
-├── models/                  # wytrenowane checkpointy (nie są dodawane do repozytorium)
-├── submissions/             # wygenerowane pliki CSV (nie są dodawane do repozytorium)
+│   └── raw/                 # dane konkursowe (lokalnie)
+├── models/                  # zapisane modele i historia treningu
+├── submissions/             # wygenerowane pliki CSV
+├── docs/
+│   └── wyniki.md            # wyniki trenowania modelu
 ├── src/
+│   ├── __init__.py
 │   ├── train.py
 │   └── predict.py
 ├── tests/
@@ -37,18 +39,22 @@ conservision-wildlife-classifier/
 └── README.md
 ```
 
+Foldery `data/`, `models/` i `submissions/` są przeznaczone do lokalnego przechowywania danych i wyników. Nie należy przesyłać danych konkursowych ani dużych plików modelu do repozytorium.
+
 ## 1. Pobranie danych
 
 1. Dołącz do konkursu i zaakceptuj zasady korzystania z danych na platformie DrivenData.
 2. Pobierz archiwum konkursowe z zakładki **Data**.
-3. Rozpakuj pliki tak, aby struktura katalogów wyglądała następująco:
+3. Rozpakuj pliki do katalogu `data/raw/`.
+
+Oczekiwana struktura:
 
 ```text
 data/raw/
 ├── train_features.csv
 ├── train_labels.csv
 ├── test_features.csv
-├── submission_format.csv       # jeśli plik znajduje się w pobranym archiwum
+├── submission_format.csv
 ├── train_features/
 │   ├── ZJ000000.jpg
 │   └── ...
@@ -57,52 +63,58 @@ data/raw/
     └── ...
 ```
 
-Dane konkursowe są celowo wykluczone z tego repozytorium Git. Nie przesyłaj zdjęć ani prywatnych plików konkursowych do GitHuba.
+Plik `submission_format.csv` należy uwzględnić, jeśli znajduje się w pobranym archiwum konkursowym.
+
+Dane konkursowe są wykluczone z repozytorium Git. Nie przesyłaj zdjęć ani prywatnych plików konkursowych do GitHuba.
 
 ## 2. Instalacja
 
-Zalecany jest Python w wersji 3.10 lub nowszej.
+Zalecana wersja środowiska: **Python 3.12**.
+
+Utworzenie środowiska wirtualnego:
 
 ```bash
 python -m venv .venv
 ```
 
-Windows:
+Aktywacja środowiska w Windows PowerShell:
 
 ```powershell
-.venv\Scripts\activate
+.venv\Scripts\Activate.ps1
 ```
 
-macOS / Linux:
+Aktywacja w macOS / Linux:
 
 ```bash
 source .venv/bin/activate
 ```
 
-Instalacja zależności:
+Instalacja wymaganych bibliotek:
 
 ```bash
 python -m pip install --upgrade pip
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ## 3. Trenowanie modelu
 
-Polecenia należy wykonywać z głównego katalogu repozytorium:
+Polecenia należy wykonywać z głównego katalogu repozytorium.
+
+Przykładowe uruchomienie treningu:
 
 ```bash
 python -m src.train --data-dir data/raw --epochs 10 --batch-size 32
 ```
 
-Aby szybko sprawdzić, czy proces uruchamia się poprawnie:
+Szybki test poprawności uruchomienia:
 
 ```bash
 python -m src.train --data-dir data/raw --epochs 1 --batch-size 8 --device cpu
 ```
 
-Najlepszy checkpoint modelu oraz metadane treningu są zapisywane w katalogu `models/`.
+Najlepszy checkpoint modelu oraz historia treningu są zapisywane w katalogu `models/`.
 
-Przy pierwszym uruchomieniu pobierane są publicznie dostępne wagi ImageNet dla modelu ResNet18. Jeśli nie masz dostępu do internetu, zmień inicjalizację modelu w pliku `src/train.py`, ustawiając `weights=None`.
+Przy pierwszym uruchomieniu pobierane są publicznie dostępne wagi ImageNet dla modelu ResNet18. Jeśli nie masz dostępu do internetu, można zmienić inicjalizację modelu w `src/train.py`, ustawiając `weights=None`.
 
 ## 4. Generowanie predykcji
 
@@ -112,30 +124,44 @@ Po zakończeniu treningu uruchom:
 python -m src.predict --data-dir data/raw --checkpoint models/best_model.pt
 ```
 
-Skrypt utworzy plik `submissions/submission.csv`. Zapisuje on jedno prawdopodobieństwo dla każdej klasy, zachowuje kolejność identyfikatorów ze zbioru testowego i sprawdza, czy suma prawdopodobieństw w każdym wierszu wynosi w przybliżeniu 1.
+Skrypt generuje plik `submissions/submission.csv`.
 
-Prześlij ten plik CSV na stronie konkursu DrivenData, w zakładce **Submit**.
+Plik zawiera prawdopodobieństwa dla poszczególnych klas. Skrypt zachowuje kolejność identyfikatorów ze zbioru testowego i sprawdza, czy suma prawdopodobieństw w każdym wierszu wynosi w przybliżeniu 1.
+
+Gotowy plik CSV można przesłać na stronie DrivenData w zakładce **Submit**.
 
 ## 5. Testy
+
+Testy projektu można uruchomić poleceniem:
 
 ```bash
 pytest -q
 ```
 
+## 6. Wyniki i analiza
+
+Wyniki procesu trenowania, w tym wartości Train Loss, Log Loss i Accuracy dla kolejnych epok, zostały przedstawione w pliku:
+
+[`docs/wyniki.md`](docs/wyniki.md).
+
 ## Aktualne ograniczenia i dalsze kroki
 
-Jest to pierwszy, odtwarzalny model bazowy — nie jest to deklaracja osiągnięcia wysokiego wyniku w rankingu konkursowym. Przydatne kierunki dalszych eksperymentów:
+Projekt stanowi pierwszy model bazowy (baseline). Nie jest deklaracją osiągnięcia wysokiego wyniku w rankingu konkursowym.
+
+Możliwe kierunki dalszego rozwoju:
 
 1. Porównanie ResNet18 z modelami EfficientNet lub ConvNeXt.
 2. Dostosowanie rozmiaru obrazu, współczynnika uczenia i augmentacji.
 3. Zastosowanie walidacji krzyżowej z grupowaniem według `site`.
-4. Analiza log loss dla poszczególnych klas oraz macierzy pomyłek.
+4. Analiza Log Loss dla poszczególnych klas oraz macierzy pomyłek.
 5. Przetestowanie augmentacji podczas predykcji (test-time augmentation) i kalibracji prawdopodobieństw.
 
-Przed wyborem ostatecznego modelu zapisuj wszystkie wyniki walidacji. Nigdy nie używaj etykiet ze zbioru testowego konkursu — nie są one udostępniane.
+Przed wyborem ostatecznego modelu należy zapisywać wyniki walidacji. Nie należy używać etykiet ze zbioru testowego konkursu, ponieważ nie są one udostępniane.
 
 ## Dane i konkurs
 
-Zbiór danych jest udostępniany za pośrednictwem DrivenData we współpracy z Wild Chimpanzee Foundation oraz Max Planck Institute for Evolutionary Anthropology. Pobieraj dane bezpośrednio ze strony konkursu i przestrzegaj określonych tam warunków ich wykorzystania.
+Zbiór danych jest udostępniany za pośrednictwem DrivenData we współpracy z Wild Chimpanzee Foundation oraz Max Planck Institute for Evolutionary Anthropology.
 
-Konkurs: https://www.drivendata.org/competitions/87/competition-image-classification-wildlife-conservation/
+Dane należy pobierać bezpośrednio ze strony konkursu i wykorzystywać zgodnie z określonymi tam warunkami.
+
+**Konkurs:** [DrivenData – Conser-vision Practice Area](https://www.drivendata.org/competitions/87/competition-image-classification-wildlife-conservation/)
