@@ -1,0 +1,1474 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Animal Detector - Rozpoznawanie zwierząt</title>
+
+
+    <!-- ================================================= -->
+    <!-- CSS - WYGLĄD APLIKACJI                             -->
+    <!-- ================================================= -->
+
+    <style>
+
+        /* ================================================ */
+        /* 1. USTAWIENIA OGÓLNE                              */
+        /* ================================================ */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 20px;
+            min-height: 100vh;
+
+            font-family: Arial, Helvetica, sans-serif;
+
+            background: #f3f5f8;
+            color: #263445;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+
+        /* ================================================ */
+        /* 2. NAGŁÓWEK                                       */
+        /* ================================================ */
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 30px;
+            color: #20334b;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        .header-badge {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 7px 14px;
+
+            border-radius: 20px;
+
+            background: #e5f0ff;
+            color: #2763a5;
+
+            font-size: 12px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+
+        /* ================================================ */
+        /* 3. GŁÓWNA KARTA                                  */
+        /* ================================================ */
+
+        .card {
+            background: white;
+
+            border-radius: 16px;
+
+            padding: 30px;
+
+            box-shadow: 0 5px 25px rgba(30, 50, 80, 0.07);
+
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 19px;
+            font-weight: bold;
+
+            color: #263d59;
+
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .section-description {
+            color: #8290a2;
+            font-size: 14px;
+
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+
+
+        /* ================================================ */
+        /* 4. POLE PRZESYŁANIA ZDJĘĆ                        */
+        /* ================================================ */
+
+        .upload-box {
+
+            border: 2px dashed #b9c7d8;
+
+            border-radius: 13px;
+
+            background: #f9fbfd;
+
+            padding: 40px 20px;
+
+            text-align: center;
+
+            transition: 0.25s ease;
+
+        }
+
+        .upload-box:hover {
+
+            border-color: #4384d8;
+
+            background: #f2f7ff;
+
+        }
+
+        .upload-box.dragover {
+
+            border-color: #278b59;
+
+            background: #edfff4;
+
+        }
+
+        .upload-icon {
+
+            font-size: 48px;
+
+            margin-bottom: 15px;
+
+        }
+
+        .upload-box h3 {
+
+            margin: 0;
+
+            color: #354961;
+
+            font-size: 18px;
+
+        }
+
+        .upload-box p {
+
+            color: #8795a5;
+
+            font-size: 14px;
+
+            margin: 12px 0 18px;
+
+        }
+
+
+        /* ================================================ */
+        /* 5. PRZYCISKI                                     */
+        /* ================================================ */
+
+        button {
+
+            border: none;
+
+            cursor: pointer;
+
+            font-family: inherit;
+
+            transition: 0.2s ease;
+
+        }
+
+        .browse-button {
+
+            background: #3175c9;
+
+            color: white;
+
+            padding: 12px 24px;
+
+            border-radius: 8px;
+
+            font-size: 14px;
+
+            font-weight: bold;
+
+        }
+
+        .browse-button:hover {
+
+            background: #245fa8;
+
+        }
+
+        .analyze-button {
+
+            display: block;
+
+            width: 100%;
+
+            margin-top: 25px;
+
+            padding: 15px;
+
+            background: #246cc0;
+
+            color: white;
+
+            border-radius: 9px;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+        }
+
+        .analyze-button:hover {
+
+            background: #19589f;
+
+        }
+
+        .analyze-button:disabled {
+
+            background: #8ea8c5;
+
+            cursor: not-allowed;
+
+        }
+
+
+        /* ================================================ */
+        /* 6. INFORMACJE O WYBRANYM ZDJĘCIU                  */
+        /* ================================================ */
+
+        .file-name {
+
+            margin-top: 18px;
+
+            color: #3175c9;
+
+            font-size: 14px;
+
+            font-weight: bold;
+
+            overflow-wrap: anywhere;
+
+        }
+
+        .file-info {
+
+            margin-top: 8px;
+
+            color: #8a98a8;
+
+            font-size: 12px;
+
+        }
+
+
+        /* ================================================ */
+        /* 7. PODGLĄD ZDJĘCIA                               */
+        /* ================================================ */
+
+        .preview-container {
+
+            display: none;
+
+            margin-top: 25px;
+
+            text-align: center;
+
+        }
+
+        .preview-container h3 {
+
+            font-size: 15px;
+
+            color: #52657b;
+
+            margin-bottom: 15px;
+
+        }
+
+        .preview-container img {
+
+            max-width: 100%;
+
+            max-height: 350px;
+
+            object-fit: contain;
+
+            border-radius: 12px;
+
+            border: 1px solid #e4e9ef;
+
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+
+        }
+
+
+        /* ================================================ */
+        /* 8. PASEK POSTĘPU ANALIZY                          */
+        /* ================================================ */
+
+        .loading-panel {
+
+            display: none;
+
+            margin-top: 25px;
+
+            padding: 22px;
+
+            border-radius: 12px;
+
+            background: #f1f6fd;
+
+            text-align: center;
+
+            border: 1px solid #dce8f7;
+
+        }
+
+        .loading-panel h3 {
+
+            color: #315d91;
+
+            font-size: 16px;
+
+            margin: 0 0 10px;
+
+        }
+
+        .loading-panel p {
+
+            color: #7d8ea3;
+
+            font-size: 13px;
+
+            margin-bottom: 18px;
+
+        }
+
+        .loading-spinner {
+
+            display: inline-block;
+
+            width: 35px;
+
+            height: 35px;
+
+            margin-bottom: 12px;
+
+            border: 4px solid #d7e4f5;
+
+            border-top-color: #3175c9;
+
+            border-radius: 50%;
+
+            animation: spin 0.8s linear infinite;
+
+        }
+
+        @keyframes spin {
+
+            to {
+                transform: rotate(360deg);
+            }
+
+        }
+
+        .progress-track {
+
+            width: 100%;
+
+            height: 9px;
+
+            background: #dce6f2;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+        }
+
+        .progress-bar {
+
+            width: 35%;
+
+            height: 100%;
+
+            background: #3175c9;
+
+            border-radius: 20px;
+
+            animation: progress-animation 1.5s ease-in-out infinite;
+
+        }
+
+        @keyframes progress-animation {
+
+            0% {
+                transform: translateX(-110%);
+            }
+
+            100% {
+                transform: translateX(310%);
+            }
+
+        }
+
+
+        /* ================================================ */
+        /* 9. KOMUNIKATY BŁĘDÓW                             */
+        /* ================================================ */
+
+        .error-box {
+
+            margin-bottom: 22px;
+
+            padding: 16px 18px;
+
+            background: #fff0f0;
+
+            color: #a63232;
+
+            border: 1px solid #f2c6c6;
+
+            border-radius: 9px;
+
+            font-size: 14px;
+
+        }
+
+
+        /* ================================================ */
+        /* 10. KARTA WYNIKU                                  */
+        /* ================================================ */
+
+        .result-card {
+
+            background: white;
+
+            border-radius: 16px;
+
+            padding: 30px;
+
+            box-shadow: 0 5px 25px rgba(30, 50, 80, 0.07);
+
+            margin-bottom: 25px;
+
+        }
+
+        .result-heading {
+
+            margin-top: 0;
+
+            margin-bottom: 22px;
+
+            color: #263d59;
+
+            font-size: 21px;
+
+        }
+
+
+        /* ================================================ */
+        /* 11. PRZESŁANE ZDJĘCIE                            */
+        /* ================================================ */
+
+        .uploaded-image-container {
+
+            text-align: center;
+
+            margin-bottom: 25px;
+
+        }
+
+        .uploaded-image-container img {
+
+            max-width: 100%;
+
+            max-height: 350px;
+
+            object-fit: contain;
+
+            border-radius: 12px;
+
+            border: 1px solid #e4e9ef;
+
+        }
+
+        .uploaded-image-label {
+
+            color: #8290a2;
+
+            font-size: 13px;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        /* ================================================ */
+        /* 12. GŁÓWNY WYNIK ROZPOZNAWANIA                    */
+        /* ================================================ */
+
+        .main-result {
+
+            text-align: center;
+
+            padding: 27px 20px;
+
+            border-radius: 13px;
+
+            background: #eefaf2;
+
+            border: 1px solid #d3ecdc;
+
+            margin-bottom: 30px;
+
+        }
+
+        .main-result.warning {
+
+            background: #fff8e9;
+
+            border-color: #f1dfb6;
+
+        }
+
+        .result-label {
+
+            color: #64806f;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            letter-spacing: 1px;
+
+            text-transform: uppercase;
+
+        }
+
+        .main-result.warning .result-label {
+
+            color: #98763e;
+
+        }
+
+        .animal-name {
+
+            font-size: 34px;
+
+            font-weight: bold;
+
+            color: #22804b;
+
+            margin: 13px 0;
+
+        }
+
+        .main-result.warning .animal-name {
+
+            color: #99752b;
+
+        }
+
+        .confidence-value {
+
+            font-size: 27px;
+
+            font-weight: bold;
+
+            color: #286e46;
+
+        }
+
+        .main-result.warning .confidence-value {
+
+            color: #99752b;
+
+        }
+
+        .result-message {
+
+            color: #708477;
+
+            font-size: 13px;
+
+            margin-top: 12px;
+
+        }
+
+        .main-result.warning .result-message {
+
+            color: #927b4d;
+
+        }
+
+
+        /* ================================================ */
+        /* 13. TOP 3 WYNIKI                                 */
+        /* ================================================ */
+
+        .top-results-title {
+
+            font-size: 17px;
+
+            color: #344b65;
+
+            margin-top: 0;
+
+            margin-bottom: 20px;
+
+        }
+
+        .rank-item {
+
+            margin-bottom: 22px;
+
+        }
+
+        .rank-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 9px;
+
+            gap: 12px;
+
+        }
+
+        .rank-name {
+
+            font-size: 14px;
+
+            color: #3f536b;
+
+            font-weight: bold;
+
+        }
+
+        .rank-percentage {
+
+            font-size: 14px;
+
+            color: #50657c;
+
+            font-weight: bold;
+
+        }
+
+        .rank-track {
+
+            height: 11px;
+
+            width: 100%;
+
+            background: #e9eef4;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+        }
+
+        .rank-fill {
+
+            height: 100%;
+
+            background: #6c96c7;
+
+            border-radius: 20px;
+
+        }
+
+        .rank-item:first-child .rank-fill {
+
+            background: #278c55;
+
+        }
+
+
+        /* ================================================ */
+        /* 14. INFORMACJA O WYNIKACH                         */
+        /* ================================================ */
+
+        .result-note {
+
+            margin-top: 25px;
+
+            padding: 13px 15px;
+
+            background: #f5f7fa;
+
+            border-radius: 8px;
+
+            color: #8491a1;
+
+            font-size: 12px;
+
+            line-height: 1.6;
+
+        }
+
+
+        /* ================================================ */
+        /* 15. STOPKA                                        */
+        /* ================================================ */
+
+        .footer {
+
+            text-align: center;
+
+            margin-top: 30px;
+
+            color: #9aa5b2;
+
+            font-size: 12px;
+
+        }
+
+
+        /* ================================================ */
+        /* 16. RESPONSYWNOŚĆ                                 */
+        /* ================================================ */
+
+        @media (max-width: 600px) {
+
+            body {
+                padding: 15px 10px;
+            }
+
+            .card,
+            .result-card {
+                padding: 20px 16px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .animal-name {
+                font-size: 28px;
+            }
+
+            .upload-box {
+                padding: 30px 15px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <!-- ================================================= -->
+    <!-- NAGŁÓWEK APLIKACJI                                -->
+    <!-- ================================================= -->
+
+    <header class="header">
+
+        <div class="logo">
+            🐾
+        </div>
+
+        <h1>Animal Detector</h1>
+
+        <p>
+            System rozpoznawania gatunków dzikich zwierząt
+            na podstawie zdjęć
+        </p>
+
+        <div class="header-badge">
+            SYSTEM UCZENIA MASZYNOWEGO
+        </div>
+
+    </header>
+
+
+    <!-- ================================================= -->
+    <!-- KOMUNIKAT O BŁĘDZIE                               -->
+    <!-- ================================================= -->
+
+    {% if error %}
+
+        <div class="error-box" role="alert">
+
+            ⚠️ {{ error }}
+
+        </div>
+
+    {% endif %}
+
+
+    <!-- ================================================= -->
+    <!-- FORMULARZ PRZESYŁANIA ZDJĘCIA                     -->
+    <!-- ================================================= -->
+
+    <main>
+
+        <section class="card">
+
+            <h2 class="section-title">
+                Rozpoznawanie zwierząt
+            </h2>
+
+            <p class="section-description">
+                Wybierz zdjęcie zwierzęcia, a model
+                uczenia maszynowego spróbuje rozpoznać jego gatunek.
+            </p>
+
+
+            <form
+                id="uploadForm"
+                action="{{ url_for('predict') }}"
+                method="POST"
+                enctype="multipart/form-data"
+            >
+
+
+                <!-- POLE PRZECIĄGANIA ZDJĘCIA -->
+
+                <div
+                    class="upload-box"
+                    id="dropArea"
+                >
+
+                    <div class="upload-icon">
+                        📷
+                    </div>
+
+                    <h3>
+                        Przeciągnij zdjęcie tutaj
+                    </h3>
+
+                    <p>
+                        lub wybierz plik z komputera
+                    </p>
+
+
+                    <!-- PRZYCISK WYBORU ZDJĘCIA -->
+
+                    <button
+                        type="button"
+                        class="browse-button"
+                        id="browseBtn"
+                    >
+
+                        Wybierz zdjęcie
+
+                    </button>
+
+
+                    <!-- UKRYTY INPUT -->
+
+                    <input
+                        type="file"
+                        id="imageInput"
+                        name="image"
+                        accept=".jpg,.jpeg,.png,.webp,.bmp"
+                        hidden
+                        required
+                    >
+
+
+                    <!-- NAZWA WYBRANEGO PLIKU -->
+
+                    <div
+                        class="file-name"
+                        id="fileName"
+                    ></div>
+
+
+                    <div class="file-info">
+
+                        Obsługiwane formaty:
+                        JPG, JPEG, PNG, WEBP, BMP
+
+                        <br>
+
+                        Maksymalny rozmiar: 10 MB
+
+                    </div>
+
+                </div>
+
+
+                <!-- ===================================== -->
+                <!-- PODGLĄD ZDJĘCIA                       -->
+                <!-- ===================================== -->
+
+                <div
+                    class="preview-container"
+                    id="previewContainer"
+                >
+
+                    <h3>
+                        Podgląd wybranego zdjęcia
+                    </h3>
+
+                    <img
+                        id="previewImage"
+                        alt="Podgląd wybranego zdjęcia"
+                    >
+
+                </div>
+
+
+                <!-- ===================================== -->
+                <!-- PRZYCISK ANALIZY                      -->
+                <!-- ===================================== -->
+
+                <button
+                    type="submit"
+                    class="analyze-button"
+                    id="analyzeBtn"
+                >
+
+                    🔍 Analizuj zdjęcie
+
+                </button>
+
+
+                <!-- ===================================== -->
+                <!-- PASEK POSTĘPU                          -->
+                <!-- ===================================== -->
+
+                <div
+                    class="loading-panel"
+                    id="loadingPanel"
+                    role="status"
+                    aria-live="polite"
+                    aria-busy="true"
+                >
+
+                    <div class="loading-spinner"></div>
+
+                    <h3>
+                        Trwa analizowanie zdjęcia...
+                    </h3>
+
+                    <p>
+                        Model analizuje obraz i porównuje
+                        jego cechy z nauczonymi gatunkami zwierząt.
+                    </p>
+
+                    <div
+                        class="progress-track"
+                        role="progressbar"
+                        aria-label="Trwa analiza zdjęcia"
+                        aria-valuetext="Analiza w toku"
+                    >
+
+                        <div class="progress-bar"></div>
+
+                    </div>
+
+                </div>
+
+
+            </form>
+
+        </section>
+
+
+        <!-- ================================================= -->
+        <!-- WYNIKI ROZPOZNAWANIA                              -->
+        <!-- ================================================= -->
+
+        {% if result %}
+
+            <section class="result-card">
+
+                <h2 class="result-heading">
+                    Wynik analizy
+                </h2>
+
+
+                <!-- ===================================== -->
+                <!-- PRZESŁANE ZDJĘCIE                     -->
+                <!-- ===================================== -->
+
+                {% if image %}
+
+                    <div class="uploaded-image-container">
+
+                        <div class="uploaded-image-label">
+                            Analizowane zdjęcie
+                        </div>
+
+                        <img
+                            src="{{ url_for('static', filename='uploads/' ~ image) }}"
+                            alt="Przesłane zdjęcie zwierzęcia"
+                        >
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- ===================================== -->
+                <!-- GŁÓWNY WYNIK                          -->
+                <!-- ===================================== -->
+
+                {% if result.recognized %}
+
+                    <div class="main-result">
+
+                        <div class="result-label">
+                            Najbardziej prawdopodobny gatunek
+                        </div>
+
+                        <div class="animal-name">
+
+                            {{ result.animal_label }}
+
+                        </div>
+
+                        <div class="confidence-value">
+
+                            {{ "%.2f"|format(result.confidence) }}%
+
+                        </div>
+
+                        <div class="result-message">
+
+                            Model osiągnął wymagany próg wyniku klasyfikacji.
+
+                        </div>
+
+                    </div>
+
+                {% else %}
+
+                    <div class="main-result warning">
+
+                        <div class="result-label">
+                            Brak jednoznacznego rozpoznania
+                        </div>
+
+                        <div class="animal-name">
+
+                            {{ result.animal_label }}
+
+                        </div>
+
+                        <div class="confidence-value">
+
+                            {{ "%.2f"|format(result.confidence) }}%
+
+                        </div>
+
+                        <div class="result-message">
+
+                            Wynik modelu jest niższy od ustalonego progu.
+                            Nie można potwierdzić rozpoznania.
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
+
+
+                <!-- ===================================== -->
+                <!-- TOP 3 WYNIKI                          -->
+                <!-- ===================================== -->
+
+                <h3 class="top-results-title">
+
+                    Trzy najlepsze wyniki klasyfikacji
+
+                </h3>
+
+
+                {% for item in result.top3 %}
+
+                    <div class="rank-item">
+
+                        <div class="rank-header">
+
+                            <span class="rank-name">
+
+                                {{ loop.index }}.
+                                {{ item.label }}
+
+                            </span>
+
+                            <span class="rank-percentage">
+
+                                {{ "%.2f"|format(item.probability) }}%
+
+                            </span>
+
+                        </div>
+
+
+                        <div class="rank-track">
+
+                            <div
+                                class="rank-fill"
+                                style="width: {{ item.probability }}%;"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+
+                <!-- ===================================== -->
+                <!-- INFORMACJA O WYNIKACH                 -->
+                <!-- ===================================== -->
+
+                <div class="result-note">
+
+                    <strong>Uwaga:</strong>
+
+                    Wyświetlane wartości procentowe przedstawiają wyniki
+                    klasyfikacji zwracane przez model Softmax.
+                    Nie są one gwarancją poprawnego rozpoznania
+                    ani automatycznie skalibrowanym prawdopodobieństwem.
+
+                    Ostateczna jakość rozpoznawania zależy między innymi
+                    od jakości zdjęcia oraz zbioru treningowego.
+
+                </div>
+
+
+            </section>
+
+        {% endif %}
+
+
+    </main>
+
+
+    <!-- ================================================= -->
+    <!-- STOPKA                                            -->
+    <!-- ================================================= -->
+
+    <footer class="footer">
+
+        Animal Detector | System klasyfikacji gatunków zwierząt
+
+        <br>
+
+        Python • TensorFlow • EfficientNetB0 • Flask
+
+    </footer>
+
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- JAVASCRIPT - OBSŁUGA INTERFEJSU                        -->
+<!-- ===================================================== -->
+
+<script>
+
+
+    // =================================================
+    // 1. POBRANIE ELEMENTÓW STRONY
+    // =================================================
+
+    const dropArea = document.getElementById("dropArea");
+
+    const fileInput = document.getElementById("imageInput");
+
+    const browseBtn = document.getElementById("browseBtn");
+
+    const fileName = document.getElementById("fileName");
+
+    const previewContainer = document.getElementById("previewContainer");
+
+    const previewImage = document.getElementById("previewImage");
+
+    const uploadForm = document.getElementById("uploadForm");
+
+    const analyzeBtn = document.getElementById("analyzeBtn");
+
+    const loadingPanel = document.getElementById("loadingPanel");
+
+
+    // Adres podglądu zdjęcia
+
+    let previewURL = null;
+
+
+    // Maksymalny rozmiar zdjęcia: 10 MB
+
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+
+    // Dozwolone rozszerzenia
+
+    const ALLOWED_FILE_PATTERN = /\.(jpg|jpeg|png|webp|bmp)$/i;
+
+
+    // =================================================
+    // 2. OTWIERANIE OKNA WYBORU ZDJĘCIA
+    // =================================================
+
+    browseBtn.addEventListener("click", function() {
+
+        fileInput.click();
+
+    });
+
+
+    // =================================================
+    // 3. WYŚWIETLANIE PODGLĄDU
+    // =================================================
+
+    function showPreview(file) {
+
+        if (!file) {
+            return;
+        }
+
+
+        // Sprawdzenie rozszerzenia
+
+        if (!ALLOWED_FILE_PATTERN.test(file.name)) {
+
+            alert(
+                "Nieobsługiwany format zdjęcia. " +
+                "Wybierz JPG, JPEG, PNG, WEBP lub BMP."
+            );
+
+            fileInput.value = "";
+
+            return;
+        }
+
+
+        // Sprawdzenie wielkości
+
+        if (file.size > MAX_FILE_SIZE) {
+
+            alert(
+                "Zdjęcie jest zbyt duże. " +
+                "Maksymalny rozmiar wynosi 10 MB."
+            );
+
+            fileInput.value = "";
+
+            return;
+        }
+
+
+        // Usunięcie poprzedniego podglądu
+
+        if (previewURL !== null) {
+
+            URL.revokeObjectURL(previewURL);
+
+        }
+
+
+        // Utworzenie podglądu
+
+        previewURL = URL.createObjectURL(file);
+
+        previewImage.src = previewURL;
+
+        previewContainer.style.display = "block";
+
+
+        // Wyświetlenie nazwy pliku
+
+        fileName.textContent =
+            "Wybrano: " + file.name;
+
+
+        // Aktualizacja informacji o rozmiarze
+
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+
+        fileName.textContent +=
+            " (" + sizeMB + " MB)";
+
+    }
+
+
+    // =================================================
+    // 4. WYBÓR ZDJĘCIA Z KOMPUTERA
+    // =================================================
+
+    fileInput.addEventListener("change", function() {
+
+        if (fileInput.files.length > 0) {
+
+            showPreview(fileInput.files[0]);
+
+        }
+
+    });
+
+
+    // =================================================
+    // 5. PRZECIĄGANIE ZDJĘCIA
+    // =================================================
+
+    ["dragenter", "dragover"].forEach(function(eventName) {
+
+        dropArea.addEventListener(eventName, function(event) {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+            dropArea.classList.add("dragover");
+
+        });
+
+    });
+
+
+    // Usuwanie podświetlenia pola
+
+    ["dragleave", "drop"].forEach(function(eventName) {
+
+        dropArea.addEventListener(eventName, function(event) {
+
+            event.preventDefault();
+
+            event.stopPropagation();
+
+            dropArea.classList.remove("dragover");
+
+        });
+
+    });
+
+
+    // Obsługa upuszczenia zdjęcia
+
+    dropArea.addEventListener("drop", function(event) {
+
+        const files = event.dataTransfer.files;
+
+        if (files.length > 0) {
+
+            const file = files[0];
+
+            const dataTransfer = new DataTransfer();
+
+            dataTransfer.items.add(file);
+
+            fileInput.files = dataTransfer.files;
+
+            showPreview(file);
+
+        }
+
+    });
+
+
+    // =================================================
+    // 6. OBSŁUGA ROZPOCZĘCIA ANALIZY
+    // =================================================
+
+    uploadForm.addEventListener("submit", function(event) {
+
+        // Sprawdzenie wyboru zdjęcia
+
+        if (fileInput.files.length === 0) {
+
+            event.preventDefault();
+
+            alert("Najpierw wybierz zdjęcie!");
+
+            return;
+
+        }
+
+
+        const selectedFile = fileInput.files[0];
+
+
+        // Dodatkowe sprawdzenie formatu
+
+        if (!ALLOWED_FILE_PATTERN.test(selectedFile.name)) {
+
+            event.preventDefault();
+
+            alert("Wybrano nieobsługiwany format zdjęcia.");
+
+            return;
+
+        }
+
+
+        // Dodatkowe sprawdzenie rozmiaru
+
+        if (selectedFile.size > MAX_FILE_SIZE) {
+
+            event.preventDefault();
+
+            alert("Zdjęcie przekracza limit 10 MB.");
+
+            return;
+
+        }
+
+
+        // Wyświetlenie animowanego paska postępu
+
+        loadingPanel.style.display = "block";
+
+
+        // Zablokowanie ponownego wysłania formularza
+
+        analyzeBtn.disabled = true;
+
+        analyzeBtn.textContent = "Analizowanie zdjęcia...";
+
+
+    });
+
+
+</script>
+
+
+</body>
+
+</html>
